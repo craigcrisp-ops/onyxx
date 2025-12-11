@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureVault - Authentication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        /* Dark mode styles */
+        .dark {
+            background-color: #0a0a0a;
+            color: #ffffff;
+        }
+        
+        .dark .gradient-bg {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+        }
+        
+        .dark .bg-white { background-color: #1a1a1a; }
+        .dark .text-gray-800 { color: #ffffff; }
+        .dark .text-gray-600 { color: #d1d5db; }
+        .dark .text-gray-500 { color: #9ca3af; }
+        .dark .text-blue-200 { color: #bfdbfe; }
+        .dark .border-gray-200 { border-color: #374151; }
+        .dark .border-gray-300 { border-color: #4b5563; }
+        
+        /* Enhanced gradient background */
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .dark .gradient-bg {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%);
+        }
+        
+        /* Biometric enhancements */
+        .biometric-pulse { 
+            animation: pulse 2s infinite; 
+        }
+        
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1); 
+                opacity: 1; 
+                filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5));
+            }
+            50% { 
+                transform: scale(1.05); 
+                opacity: 0.8; 
+                filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.8));
+            }
+        }
+        
+        .dark .biometric-pulse {
+            animation: pulseDark 2s infinite;
+        }
+        
+        @keyframes pulseDark {
+            0%, 100% { 
+                transform: scale(1); 
+                opacity: 1; 
+                filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.5));
+            }
+            50% { 
+                transform: scale(1.05); 
+                opacity: 0.8; 
+                filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.8));
+            }
+        }
+        
+        .pin-dot { 
+            transition: all 0.3s ease; 
+        }
+        
+        .pin-dot.filled { 
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            transform: scale(1.2);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+        
+        .dark .pin-dot.filled {
+            background: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.5);
+        }
+        
+        .keypad-btn { 
+            transition: all 0.2s ease; 
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .keypad-btn:active { 
+            transform: scale(0.95); 
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .dark .keypad-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .dark .keypad-btn:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .auth-option { 
+            transition: all 0.3s ease; 
+        }
+        
+        .auth-option.active { 
+            transform: scale(1.02); 
+            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .dark .auth-option.active {
+            box-shadow: 0 8px 25px rgba(34, 211, 238, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Face scan enhancement */
+        .face-scan { 
+            border: 3px solid rgba(59, 130, 246, 0.8);
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+        }
+        
+        .dark .face-scan {
+            border: 3px solid rgba(34, 211, 238, 0.8);
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.1) 0%, transparent 70%);
+        }
+        
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+            animation: scan 2s infinite;
+        }
+        
+        .dark .scan-line {
+            background: linear-gradient(90deg, transparent, #22d3ee, transparent);
+        }
+        
+        @keyframes scan {
+            0% { top: 0; opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        
+        /* Dark mode toggle */
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .dark-mode-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+        
+        /* Enhanced authentication card */
+        .auth-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .dark .auth-card {
+            background: rgba(26, 26, 26, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Glow effects for buttons */
+        .glow-blue {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        .dark .glow-blue {
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
+        }
+        
+        /* Enhanced success overlay */
+        .success-overlay {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+        }
+        
+        .dark .success-overlay {
+            background: rgba(0, 0, 0, 0.9);
+        }
+        
+        /* Animation enhancements */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Security info glow */
+        .security-info {
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+        
+        .dark .security-info {
+            text-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .dark-mode-toggle {
+                top: 15px;
+                right: 15px;
+                padding: 6px;
+            }
+            
+            .dark-mode-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .face-scan {
+                width: 120px;
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body class="gradient-bg">
+    <!-- Dark Mode Toggle -->
+    <button id="darkModeToggle" class="dark-mode-toggle">
+        <svg id="sunIcon" class="w-6 h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+        </svg>
+        <svg id="moonIcon" class="w-6 h-6 text-blue-300 hidden" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+        </svg>
+    </button>
+
+    <div class="w-full max-w-sm mx-auto px-4 py-8">
+        <!-- App Logo -->
+        <div class="text-center mb-8 fade-in">
+            <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto mb-4 glow-blue">
+                <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2 glow-text">SecureVault</h1>
+            <p class="text-blue-200 text-sm">Your data is protected with bank-level security</p>
+        </div>
+
+        <!-- Authentication Options -->
+        <div class="auth-card rounded-2xl p-6 mb-6 fade-in">
+            <div class="flex justify-center space-x-4 mb-6">
+                <button id="faceTab" class="auth-option active px-4 py-2 rounded-xl bg-white/20 text-white text-sm font-medium" onclick="switchAuth('face')">
+                    Face ID
+                </button>
+                <button id="pinTab" class="auth-option px-4 py-2 rounded-xl text-white/70 text-sm font-medium" onclick="switchAuth('pin')">
+                    PIN Code
+                </button>
+            </div>
+
+            <!-- Face ID Authentication -->
+            <div id="faceAuth" class="auth-section">
+                <div class="text-center mb-6">
+                    <div class="face-scan w-32 h-32 mx-auto mb-4 flex items-center justify-center">
+                        <div class="scan-line"></div>
+                        <svg class="w-16 h-16 text-blue-600 dark:text-cyan-400 biometric-pulse" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-2">Look at your device</h3>
+                    <p class="text-blue-200 text-sm">Position your face in the center of the screen</p>
+                </div>
+                
+                <button onclick="simulateFaceAuth()" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 rounded-xl transition-all glow-blue">
+                    Start Face Scan
+                </button>
+            </div>
+
+            <!-- PIN Authentication -->
+            <div id="pinAuth" class="auth-section hidden">
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-semibold text-white mb-2">Enter your PIN</h3>
+                    <p class="text-blue-200 text-sm">4-digit security code</p>
+                </div>
+
+                <!-- PIN Display -->
+                <div class="flex justify-center space-x-3 mb-8">
+                    <div class="pin-dot w-4 h-4 bg-white/20 rounded-full"></div>
+                    <div class="pin-dot w-4 h-4 bg-white/20 rounded-full"></div>
+                    <div class="pin-dot w-4 h-4 bg-white/20 rounded-full"></div>
+                    <div class="pin-dot w-4 h-4 bg-white/20 rounded-full"></div>
+                </div>
+
+                <!-- Keypad -->
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    <button class="keypad-btn text-white font-semibold py-4 rounded-xl" onclick="enterPin('1')">1</button>
+                    <button class="keypad-btn text-white font-semibold py-4 rounded-xl" onclick="enterPin('2')">2</button>
+                    <button class="keypad-btn text-white font-semibold py-4 rounded-xl" onclick="enterPin('3')">3</button>
+                    <button class="keypad-btn text-white font-semibold py-4 rounded-xl" onclick="enterPin('4')">4</button>
+                    <button class="keypad-btn text-white font-semibold py-4 rounded-xl" onclick="enterPin('5')">5</button>
+                    <button class="keypad-btn text-white font-semibold py-4 rounded-xl" onclick="enterPin('6')">6</button>
+                    <button class="keypad-btn text-white font-semibold py-4 rounded-xl" onclick="enterPin('7')">7</button>
+                    <button class="keypad-btn text-white font-semibold py-4 rounded-xl" onclick="enterPin('8')">8</button>
+                    <button class="keypad-btn text-white font-semibold py-4 rounded-xl" onclick="enterPin('9')">9</button>
+                    <button class="keypad-btn text-white font-semibold py-4 rounded-xl" onclick="clearPin()">
+                        <svg class="w-6 h-6 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                    <button class="keypad-btn text-white font-semibold py-4 rounded-xl" onclick="enterPin('0')">0</button>
+                    <button class="keypad-btn text-white font-semibold py-4 rounded-xl" onclick="deletePin()">
+                        <svg class="w-6 h-6 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.707 14.707a1 1 0 010-1.414L10.586 10 7.707 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Info -->
+        <div class="text-center mb-6 fade-in">
+            <div class="flex items-center justify-center space-x-2 security-info text-blue-200 text-sm mb-2">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                <span>End-to-end encrypted</span>
+            </div>
+            <p class="text-blue-300 text-xs">Your data is secured with AES-256 encryption</p>
+        </div>
+
+        <!-- Help Options -->
+        <div class="text-center space-y-3 fade-in">
+            <button onclick="showRecovery()" class="text-blue-200 hover:text-white text-sm underline transition-colors">
+                Forgot PIN?
+            </button>
+            <div class="text-xs text-blue-300">
+                <p>Need help? <a href="settings.html" class="underline hover:text-white transition-colors">Contact Support</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Animation Overlay -->
+    <div id="successOverlay" class="success-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center mx-4 border border-gray-200 dark:border-gray-700">
+            <div class="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Authentication Successful</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm">Redirecting to your vault...</p>
+        </div>
+    </div>
+
+    <script>
+        // Dark mode functionality
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+        const body = document.body;
+
+        // Check for saved dark mode preference
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        
+        // Apply dark mode if previously enabled
+        if (isDarkMode) {
+            body.classList.add('dark');
+            sunIcon.classList.add('hidden');
+            moonIcon.classList.remove('hidden');
+        }
+
+        darkModeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark');
+            const isDark = body.classList.contains('dark');
+            
+            // Toggle icons
+            if (isDark) {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+            
+            // Save preference
+            localStorage.setItem('darkMode', isDark);
+            
+            // Animate toggle
+            anime({
+                targets: darkModeToggle,
+                scale: [1, 1.1, 1],
+                duration: 300,
+                easing: 'easeOutBack'
+            });
+        });
+
+        let currentPin = '';
+        const correctPin = '1234'; // Demo PIN
+
+        function switchAuth(method) {
+            // Update tabs
+            document.querySelectorAll('.auth-option').forEach(tab => {
+                tab.classList.remove('active', 'bg-white/20');
+                tab.classList.add('text-white/70');
+            });
+            
+            if (method === 'face') {
+                document.getElementById('faceTab').classList.add('active', 'bg-white/20');
+                document.getElementById('faceTab').classList.remove('text-white/70');
+                document.getElementById('faceAuth').classList.remove('hidden');
+                document.getElementById('pinAuth').classList.add('hidden');
+            } else {
+                document.getElementById('pinTab').classList.add('active', 'bg-white/20');
+                document.getElementById('pinTab').classList.remove('text-white/70');
+                document.getElementById('pinAuth').classList.remove('hidden');
+                document.getElementById('faceAuth').classList.add('hidden');
+            }
+        }
+
+        function enterPin(digit) {
+            if (currentPin.length < 4) {
+                currentPin += digit;
+                updatePinDisplay();
+                
+                if (currentPin.length === 4) {
+                    setTimeout(() => {
+                        checkPin();
+                    }, 300);
+                }
+            }
+        }
+
+        function clearPin() {
+            currentPin = '';
+            updatePinDisplay();
+        }
+
+        function deletePin() {
+            currentPin = currentPin.slice(0, -1);
+            updatePinDisplay();
+        }
+
+        function updatePinDisplay() {
+            const dots = document.querySelectorAll('.pin-dot');
+            dots.forEach((dot, index) => {
+                if (index < currentPin.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            });
+        }
+
+        function checkPin() {
+            if (currentPin === correctPin) {
+                showSuccess();
+            } else {
+                // Shake animation for wrong PIN
+                anime({
+                    targets: '.pin-dot',
+                    translateX: [0, -10, 10, -10, 10, 0],
+                    duration: 500,
+                    easing: 'easeInOutQuad'
+                });
+                setTimeout(() => {
+                    clearPin();
+                }, 500);
+            }
+        }
+
+        function simulateFaceAuth() {
+            const faceScan = document.querySelector('.face-scan');
+            
+            // Animate face scan
+            anime({
+                targets: faceScan,
+                scale: [1, 1.1, 1],
+                duration: 2000,
+                easing: 'easeInOutQuad',
+                complete: () => {
+                    showSuccess();
+                }
+            });
+        }
+
+        function showSuccess() {
+            document.getElementById('successOverlay').classList.remove('hidden');
+            
+            // Animate success
+            anime({
+                targets: '#successOverlay > div',
+                scale: [0.8, 1],
+                opacity: [0, 1],
+                duration: 500,
+                easing: 'easeOutBack'
+            });
+            
+            // Redirect after animation
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+        }
+
+        function showRecovery() {
+            alert('Recovery options would be available in the full app. This is a demo.');
+        }
+
+        // Initialize with some animation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Staggered animation for elements
+            anime({
+                targets: '.fade-in',
+                translateY: [30, 0],
+                opacity: [0, 1],
+                duration: 800,
+                delay: anime.stagger(100),
+                easing: 'easeOutQuad'
+            });
+
+            // Animate keypad buttons
+            anime({
+                targets: '.keypad-btn',
+                scale: [0.8, 1],
+                opacity: [0, 1],
+                duration: 500,
+                delay: anime.stagger(30, {start: 300}),
+                easing: 'easeOutBack'
+            });
+
+            // Animate face scan
+            anime({
+                targets: '.face-scan',
+                scale: [0.8, 1],
+                opacity: [0, 1],
+                duration: 600,
+                delay: 200,
+                easing: 'easeOutBack'
+            });
+        });
+    </script>
+</body>
+</html>

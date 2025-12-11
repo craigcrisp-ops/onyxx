@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureVault - Your Digital Fortress</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            overflow-x: hidden;
+        }
+        
+        /* Dark mode styles */
+        .dark {
+            background-color: #0a0a0a;
+            color: #ffffff;
+        }
+        
+        .dark .gradient-bg {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #2d2d2d 100%);
+        }
+        
+        .dark .text-gray-800 { color: #ffffff; }
+        .dark .text-gray-600 { color: #d1d5db; }
+        .dark .text-gray-500 { color: #9ca3af; }
+        .dark .bg-white { background-color: #1a1a1a; }
+        .dark .bg-gray-50 { background-color: #0f0f0f; }
+        .dark .bg-gray-100 { background-color: #1f1f1f; }
+        .dark .border-gray-200 { border-color: #374151; }
+        .dark .border-gray-300 { border-color: #4b5563; }
+        
+        /* Globe container */
+        #globe-container {
+            position: relative;
+            width: 100%;
+            height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Luminous globe styles */
+        .luminous-globe {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            position: relative;
+            background: radial-gradient(circle at 30% 30%, 
+                rgba(59, 130, 246, 0.8) 0%,
+                rgba(99, 102, 241, 0.6) 25%,
+                rgba(139, 92, 246, 0.4) 50%,
+                rgba(168, 85, 247, 0.3) 75%,
+                rgba(236, 72, 153, 0.2) 100%);
+            box-shadow: 
+                0 0 60px rgba(59, 130, 246, 0.5),
+                0 0 120px rgba(99, 102, 241, 0.3),
+                0 0 180px rgba(139, 92, 246, 0.2),
+                inset 0 0 60px rgba(255, 255, 255, 0.1);
+            animation: rotate 20s linear infinite, colorShift 8s ease-in-out infinite;
+        }
+        
+        .dark .luminous-globe {
+            background: radial-gradient(circle at 30% 30%, 
+                rgba(34, 211, 238, 0.9) 0%,
+                rgba(59, 130, 246, 0.7) 25%,
+                rgba(99, 102, 241, 0.5) 50%,
+                rgba(139, 92, 246, 0.3) 75%,
+                rgba(168, 85, 247, 0.2) 100%);
+            box-shadow: 
+                0 0 80px rgba(34, 211, 238, 0.6),
+                0 0 160px rgba(59, 130, 246, 0.4),
+                0 0 240px rgba(99, 102, 241, 0.2),
+                inset 0 0 80px rgba(255, 255, 255, 0.2);
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes colorShift {
+            0%, 100% { 
+                filter: hue-rotate(0deg) brightness(1);
+            }
+            25% { 
+                filter: hue-rotate(60deg) brightness(1.1);
+            }
+            50% { 
+                filter: hue-rotate(120deg) brightness(0.9);
+            }
+            75% { 
+                filter: hue-rotate(240deg) brightness(1.2);
+            }
+        }
+        
+        /* Floating particles */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(59, 130, 246, 0.6);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .dark .particle {
+            background: rgba(34, 211, 238, 0.8);
+        }
+        
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(0px) translateX(0px);
+                opacity: 0;
+            }
+            10% { 
+                opacity: 1;
+            }
+            90% { 
+                opacity: 1;
+            }
+            50% { 
+                transform: translateY(-100px) translateX(50px);
+            }
+        }
+        
+        /* Glow effects */
+        .glow-text {
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+            animation: textGlow 3s ease-in-out infinite alternate;
+        }
+        
+        .dark .glow-text {
+            text-shadow: 0 0 30px rgba(34, 211, 238, 0.8);
+        }
+        
+        @keyframes textGlow {
+            from { text-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+            to { text-shadow: 0 0 30px rgba(59, 130, 246, 0.8), 0 0 40px rgba(59, 130, 246, 0.3); }
+        }
+        
+        /* Dark mode toggle */
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .dark-mode-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+        
+        /* Feature cards */
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dark .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .dark .feature-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* CTA buttons */
+        .cta-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .cta-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.4);
+        }
+        
+        .cta-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .cta-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .dark .cta-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .dark .cta-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Background gradient */
+        .gradient-bg {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+            min-height: 100vh;
+        }
+        
+        .dark .gradient-bg {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #2d2d2d 100%);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .luminous-globe {
+                width: 200px;
+                height: 200px;
+            }
+            
+            #globe-container {
+                height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body class="gradient-bg transition-all duration-500">
+    <!-- Dark Mode Toggle -->
+    <button id="darkModeToggle" class="dark-mode-toggle">
+        <svg id="sunIcon" class="w-6 h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+        </svg>
+        <svg id="moonIcon" class="w-6 h-6 text-blue-300 hidden" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+        </svg>
+    </button>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex flex-col items-center justify-center px-4">
+        <!-- Floating Particles -->
+        <div id="particles" class="absolute inset-0 pointer-events-none"></div>
+        
+        <!-- Main Content -->
+        <div class="text-center z-10">
+            <!-- App Logo -->
+            <div class="mb-8">
+                <div class="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto mb-4 border border-white/20">
+                    <svg class="w-12 h-12 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <h1 class="text-4xl md:text-6xl font-bold glow-text text-gray-800 mb-2">SecureVault</h1>
+                <p class="text-lg md:text-xl text-gray-600">Your Digital Fortress</p>
+            </div>
+            
+            <!-- Luminous Globe -->
+            <div id="globe-container" class="mb-12">
+                <div class="luminous-globe">
+                    <!-- Globe will be enhanced with p5.js -->
+                </div>
+            </div>
+            
+            <!-- Hero Text -->
+            <div class="max-w-2xl mx-auto mb-12">
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
+                    Protect What Matters Most
+                </h2>
+                <p class="text-lg text-gray-600 mb-6 leading-relaxed">
+                    Bank-level security meets stunning design. Store passwords, notes, and sensitive documents 
+                    with end-to-end encryption and biometric authentication.
+                </p>
+                
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <button onclick="window.location.href='auth.html'" class="cta-primary text-white font-semibold px-8 py-4 rounded-2xl text-lg min-w-[200px]">
+                        Get Started
+                    </button>
+                    <button onclick="scrollToFeatures()" class="cta-secondary text-gray-700 font-semibold px-8 py-4 rounded-2xl text-lg min-w-[200px]">
+                        Learn More
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Why Choose SecureVault?</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    Experience the perfect blend of security, design, and usability
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Security Feature -->
+                <div class="feature-card rounded-2xl p-8 text-center">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Military-Grade Security</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        AES-256 encryption protects your data with zero-knowledge architecture. 
+                        Even we can't access your information.
+                    </p>
+                </div>
+                
+                <!-- Design Feature -->
+                <div class="feature-card rounded-2xl p-8 text-center">
+                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm3 2h2v2H7V4zm8 0v2h-2V4h2zM7 8h2v2H7V8zm8 0v2h-2V8h2zm-8 4h2v2H7v-2zm8 0v2h-2v-2h2z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Stunning Design</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Beautifully crafted interface with smooth animations and intuitive interactions. 
+                        Security has never looked this good.
+                    </p>
+                </div>
+                
+                <!-- Convenience Feature -->
+                <div class="feature-card rounded-2xl p-8 text-center">
+                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Effortless Access</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Biometric authentication and intelligent auto-fill make accessing your data 
+                        both secure and convenient.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-16 px-4 bg-white/30 dark:bg-white/5">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-12">Trusted by Users Worldwide</h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="text-3xl md:text-4xl font-bold text-blue-600 mb-2">1M+</div>
+                    <div class="text-sm text-gray-600">Active Users</div>
+                </div>
+                <div>
+                    <div class="text-3xl md:text-4xl font-bold text-purple-600 mb-2">50M+</div>
+                    <div class="text-sm text-gray-600">Items Protected</div>
+                </div>
+                <div>
+                    <div class="text-3xl md:text-4xl font-bold text-green-600 mb-2">99.9%</div>
+                    <div class="text-sm text-gray-600">Uptime</div>
+                </div>
+                <div>
+                    <div class="text-3xl md:text-4xl font-bold text-orange-600 mb-2">4.9★</div>
+                    <div class="text-sm text-gray-600">User Rating</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="mb-8">
+                <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">SecureVault</h3>
+                <p class="text-gray-600">Your digital life, perfectly protected.</p>
+            </div>
+            
+            <div class="border-t border-gray-200 pt-8">
+                <p class="text-sm text-gray-500">
+                    © 2024 SecureVault. Built with security and design excellence.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Dark mode functionality
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+        const body = document.body;
+
+        // Check for saved dark mode preference
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        
+        // Apply dark mode if previously enabled
+        if (isDarkMode) {
+            body.classList.add('dark');
+            sunIcon.classList.add('hidden');
+            moonIcon.classList.remove('hidden');
+        }
+
+        darkModeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark');
+            const isDark = body.classList.contains('dark');
+            
+            // Toggle icons
+            if (isDark) {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+            
+            // Save preference
+            localStorage.setItem('darkMode', isDark);
+            
+            // Animate toggle
+            anime({
+                targets: darkModeToggle,
+                scale: [1, 1.1, 1],
+                duration: 300,
+                easing: 'easeOutBack'
+            });
+        });
+
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 20;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (6 + Math.random() * 4) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Smooth scroll to features
+        function scrollToFeatures() {
+            document.getElementById('features').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+
+        // Initialize animations
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            
+            // Animate elements on load
+            anime({
+                targets: '.feature-card',
+                translateY: [50, 0],
+                opacity: [0, 1],
+                duration: 800,
+                delay: anime.stagger(200),
+                easing: 'easeOutQuad'
+            });
+            
+            // Animate stats
+            anime({
+                targets: '.text-3xl, .text-4xl',
+                innerHTML: [0, function(el) { return el.innerHTML; }],
+                duration: 2000,
+                delay: 1000,
+                round: 1,
+                easing: 'easeOutQuad'
+            });
+        });
+
+        // Add some interactive hover effects
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                anime({
+                    targets: card.querySelector('svg'),
+                    scale: [1, 1.1],
+                    duration: 300,
+                    easing: 'easeOutBack'
+                });
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                anime({
+                    targets: card.querySelector('svg'),
+                    scale: [1.1, 1],
+                    duration: 300,
+                    easing: 'easeOutBack'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
