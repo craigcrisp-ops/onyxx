@@ -1,4 +1,4 @@
-# SecureVault - Personal Data Vault
+# Trulocke - Personal Data Vault
 
 A secure, mobile-first web application designed to protect your sensitive information with bank-level encryption and biometric authentication simulation.
 
